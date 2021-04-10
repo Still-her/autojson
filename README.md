@@ -6,7 +6,10 @@ rapidjson是腾讯的开源json解析框架，用c++实现。由于全部代码�
 
 autojson.cpp可以根据 json模板生成c结构体头文件，以及c转json串和json串转c的两个cpp，生成的cpp是基本符合rapidjson库的标准要求
 可参考 rapidjson官方教程http://rapidjson.org/zh-cn/md_doc_tutorial_8zh-cn.html
+在生成的文件里面稍作修改即可达到想要的目标文件。
 
-
-当json格式与上冲突时,可以修改json模板数据格式，满足以上要求
-然后再生成的文件里面稍作修改亦可达到想要的目标文件。
+例子：
+1.在 datd_json文件里面保存json模板串
+2.编译：g++ autojson2.cpp -o autojson
+3.运行 autojson data_json
+4.生成目标文件
