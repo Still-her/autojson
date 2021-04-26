@@ -12,6 +12,13 @@ autojson.cpp可以根据 json模板生成c结构体头文件，以及c转json串
 
 例子：
 1.在 data_json文件里面保存json模板串
-2.编译：g++ autojson2.cpp -o autojson
+2.编译：g++ autojson4.cpp -o autojson
 3.运行 autojson data_json
 4.生成目标文件
+
+buglist
+1.若[]list 含有多个object,或缺省值如[null,null],已处理
+2.其他错误在生成文件头已指示
+
+There are unexpected bugs
+Hey, just play
