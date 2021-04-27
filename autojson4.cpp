@@ -1,11 +1,11 @@
 
 /***************************************
 Author:lixingbo
-data:2021 04 26
+data:2021 04 27
 
 buglist
 1.若[]list 含有多个object,或缺省值如[null,null],已处理
-2.其他错误在生成文件头已指示
+2.其他错误注释在生成文件已指示
   
 若需要用此APP生成结构体及基于repadjson的解析cpp文件
 在生成的文件里面稍作修改亦可达到想要的目标文件。
@@ -333,17 +333,24 @@ int c2json::call(string &buf,int pos)
 		{
 			case '}' :
 			ofs << "writer.EndObject();" << endl;
-
+			
+			if(!vkey.empty())
+			{
+				//cout << vkey.at(0) << endl;
+				//cout << endl<< endl;
+				vkey.pop_back();
+			}
 			
 			break;
 
 			case ']' :
+			arrcut--;
 			if(!vkey.empty())
 			{
 
 				//cout << vkey.at(0) << endl;
 				//cout << endl<< endl;
-				vkey.pop_back();
+				//vkey.pop_back();
 			}
 			val = "";
 			val.append("root->");
@@ -364,7 +371,7 @@ int c2json::call(string &buf,int pos)
 
 	if(mn == -1){
 		
-		buf = "    ";
+		buf = "stop";
 		return 0;
 		//sleep(1);
 	};
@@ -380,11 +387,13 @@ int c2json::call(string &buf,int pos)
 			ofs << "writer.StartObject();" << endl;
 
 key:
-
+			char tmpin[10];
+			sprintf(tmpin, "%d",vkey.size());
 			int li,ri;
 			li = buf.find_first_of("\"", 0);
 			ri = buf.find_first_of("\"",li+1);
-			okey.push_back(buf.substr(li+1,ri-li-1));
+			
+
 			ofs << "writer.Key(\"" << buf.substr(li+1,ri-li-1) << "\");" << endl;
 			if( ':' != buf[ri+1])
 			{
@@ -411,7 +420,7 @@ key:
 					goto write;
 				case 'N':  //NULL
 				case '\"': //NULL
-
+				case 'n': //NULL
 				ofs << "writer.String(" << val << buf.substr(li+1,ri-li-1) << ".c_str());" << endl;
 					goto write;
 write:
@@ -420,7 +429,13 @@ write:
 					if(buf[nide] == '}')
 					{
 						ofs << "writer.EndObject();" << endl;
-						okey.pop_back();
+						if(!vkey.empty())
+						{
+
+							//cout << vkey.at(0) << endl;
+							//cout << endl<< endl;
+							vkey.pop_back();
+						}
 						buf = buf.substr(nide+1,buf.length()-nide-1);
 
 						call(buf, 0);
@@ -530,10 +545,28 @@ sta:
 				case '{':
 				{
 
+					if(buf[ri+3] == '}')
+					{
+						if(buf[ri+4] == ',')
+						{
+							buf = buf.substr(ri+5, buf.length()-ri-5);
+							goto key;
+						}
+						else
+						{
+							buf = buf.substr(ri+4, buf.length()-ri-4);
+							call(buf, 0);
+						}
+					}
+
+					if(buf == "stop")
+					{
+						cout << "stop" << endl;
+						return 0;
+					}
+					vkey.push_back(buf.substr(li+1,ri-li-1));
 					buf = buf.substr(ri+2, buf.length()-ri-2);
-
 					call(buf, 0);
-
 				}
 				default :
 				{
@@ -543,6 +576,7 @@ sta:
 			}
 			break;
 		}
+		break;
 	}
 	return 0;
 }
@@ -586,8 +620,6 @@ int c2json::start(string filename)
 	ofs << "Thank you use this simple tool"<< endl;
 	ofs << "Portal: https://github.com/Still-her/autojson"<< endl;
 	ofs << "This document may need to be modified as follows:"<< endl;
-	ofs << "For example: root.arr1[m].arr2[n] missing object in the for loop"<< endl;
-	ofs << "Correct: root.obj1.arr1[m].obj2.arr2[n]"<< endl;
 	ofs << "There are unexpected bugs"<< endl;
 	ofs << "Hey, just play"<< endl;
 	ofs << "*/"<< endl;
@@ -867,7 +899,7 @@ write:
 					int nide = buf.find_first_of("{]",ri+2);
 					if(buf[nide] == '{')
 					{
-						ofs << "const rapidjson::Value& obj_" << atoi(tmpin) << " = arr_" << arrcut <<"[i_" << arrcut << "];" << endl;
+						ofs << "const rapidjson::Value& obj_" << vkey.size() << " = arr_" << arrcut <<"[i_" << arrcut << "];" << endl;
 						buf = buf.substr(nide, buf.length()-nide);
 						call(buf, 0);
 
@@ -1027,8 +1059,6 @@ int json2c::start(string filename)
 	ofs << "Thank you use this simple tool"<< endl;
 	ofs << "Portal: https://github.com/Still-her/autojson"<< endl;
 	ofs << "This document may need to be modified as follows:"<< endl;
-	ofs << "For example: const rapidjson::Value& obj_x = arr_1[i_1];"<< endl;
-	ofs << "x=? According to the next line obj_x to define "<< endl;
 	ofs << "There are unexpected bugs"<< endl;
 	ofs << "Hey, just play"<< endl;
 	ofs << "*/"<< endl;
